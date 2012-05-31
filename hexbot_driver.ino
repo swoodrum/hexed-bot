@@ -16,21 +16,11 @@ void setup() {
   Serial.begin(9600);
   mySerial.begin(9600);
   delay(1000);
-  center_servos_2();
-  //center_servos();
-  //sweep_servo(8000);
-  //delay(1000);
-  //center_servos();
-  /*delay(500);
-   center_servos();
-   delay(1000);
-   walk_forward(1);
-   delay(3000);
-   walk_backward(1);
-   delay(3000);
-   turn_right(15);
-   delay(3000);
-   turn_left(15);*/
+  center_servos();
+  walk_forward(5);
+  delay(1000);
+  walk_backward(5);
+  center_servos();
 }
 
 void loop() {
@@ -65,12 +55,6 @@ float read_gp2d12_range(byte pin) {
 // FYI see http://www.pololu.com/docs/0J40/5.e
 // The LSB and MSB values are specific to my servos
 
-void set_servo_header() {
-  mySerial.write(0xAA); // Command start byte
-  mySerial.write(0x0C); // Default device ID is 12 or 0x0C
-  mySerial.write(0x04); // Servo set command
-}
-
 void move_servo(int channel, int pos) {
   byte command[] = {
     170, 12, 4, channel, pos & 0x7F, (pos >> 7) & 0x7F      };
@@ -102,7 +86,7 @@ void sweep_servo(int pos) {
   Serial.println(command[2],HEX);
 }
 
-void center_servos_2() {
+void center_servos() {
   move_servo(4, 5380);
   move_servo(3, 4887);
   move_servo(2, 6000);
@@ -110,79 +94,30 @@ void center_servos_2() {
   move_servo(i, 4632); 
 }
 
-void center_servos() {
-  set_servo_header();
-  mySerial.write(0x05); // Channel number
-  mySerial.write(i);    // LSB
-  mySerial.write(i);    // MSB
-  // Servo 4 left legs
-  set_servo_header();
-  mySerial.write(0x04);
-  mySerial.write(0x04);
-  mySerial.write(0x2A);
-  // Servo 3 right legs
-  set_servo_header();
-  mySerial.write(0x03);
-  mySerial.write(0x17);
-  mySerial.write(0x26);
-  // Servo 2 middle legs
-  set_servo_header();
-  mySerial.write(0x02);
-  mySerial.write(0x70);
-  mySerial.write(0x2E);
-  // Servo 1 sweep 
-  set_servo_header();
-  mySerial.write(0x01);
-  mySerial.write(0x70);
-  mySerial.write(0x2E);
-  // Servo 0 pan
-  set_servo_header();
-  mySerial.write(i);
-  mySerial.write(0x18);
-  mySerial.write(0x24);
-}
 
-void mid_left_down() {
-  //set_servo_header();
-  //mySerial.write(0x02);
-  //mySerial.write(0x31);
-  //mySerial.write(0x38); 
+
+void mid_left_down() { 
   move_servo(2, 7217);
 }
 
-void mid_right_down() {
-  set_servo_header();
-  mySerial.write(0x02);
-  mySerial.write(i);
-  mySerial.write(0x1F); 
+void mid_right_down() { 
+  move_servo(2, 3968);
 }
 
-void right_legs_backward() {
-  set_servo_header();
-  mySerial.write(0x03);
-  mySerial.write(0x13);
-  mySerial.write(0x1F);  
+void right_legs_backward() { 
+  move_servo(3, 3987); 
 }
 
 void right_legs_forward() {
-  set_servo_header();
-  mySerial.write(0x03);
-  mySerial.write(0x56);
-  mySerial.write(0x2D);  
+  move_servo(3, 5846);  
 }
 
-void left_legs_forward() {
-  set_servo_header();
-  mySerial.write(0x04);
-  mySerial.write(0x2D);
-  mySerial.write(0x24); 
+void left_legs_forward() { 
+  move_servo(4, 4653);
 }
 
-void left_legs_backward() {
-  set_servo_header();
-  mySerial.write(0x04);
-  mySerial.write(0x40);
-  mySerial.write(0x31); 
+void left_legs_backward() { 
+  move_servo(4, 6336);
 }
 
 void walk_forward(int steps) {
