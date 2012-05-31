@@ -73,7 +73,7 @@ void set_servo_header() {
 
 void move_servo(int channel, int pos) {
   byte command[] = {
-    170, 12, 4, channel, pos & 0x7F, (pos >> 7) & 0x7F    };
+    170, 12, 4, channel, pos & 0x7F, (pos >> 7) & 0x7F      };
   for(int i = 0; i < 6; i++) {
     mySerial.write(command[i]);
     //Serial.println(command[i],HEX);
@@ -83,7 +83,7 @@ void move_servo(int channel, int pos) {
 void sweep_servo(int pos) {
   //set_servo_header();
   byte command[] = {
-    0x01, pos & 0x7F, (pos >> 7) & 0x7F          };
+    0x01, pos & 0x7F, (pos >> 7) & 0x7F            };
   //mySerial.write(0x01);
   //mySerial.write(0x50);
   //mySerial.write(0X0F);
@@ -143,10 +143,11 @@ void center_servos() {
 }
 
 void mid_left_down() {
-  set_servo_header();
-  mySerial.write(0x02);
-  mySerial.write(0x31);
-  mySerial.write(0x38); 
+  //set_servo_header();
+  //mySerial.write(0x02);
+  //mySerial.write(0x31);
+  //mySerial.write(0x38); 
+  move_servo(2, 7217);
 }
 
 void mid_right_down() {
@@ -251,6 +252,7 @@ void turn_left(int numTurns) {
   }
   center_servos();
 }
+
 
 
 
