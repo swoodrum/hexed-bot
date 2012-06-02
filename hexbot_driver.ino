@@ -10,28 +10,24 @@ const int gp2d12Pin = 5; // analog pin 5
 
 SoftwareSerial mySerial(pRxPin, pTxPin);
 
-int i = 0;
-
 void setup() {
   Serial.begin(9600);
   mySerial.begin(9600);
   delay(1000);
   center_servos();
-  walk_forward(5);
-  delay(1000);
-  walk_backward(5);
-  center_servos();
 }
 
 void loop() {
   //Serial.println(read_gp2d12_range(gp2d12Pin));
-  /*if(read_gp2d12_range(gp2d12Pin) > 25) {
-   walk_forward(1); 
-   } 
-   else {
-   walk_backward(1); 
-   }
-   delay(1000);*/
+  if(read_gp2d12_range(gp2d12Pin) > 30) {
+    walk_forward(1); 
+  } 
+  else {
+    walk_backward(1); 
+  }
+  sweep();
+  pan();
+  delay(5000);
 }
 
 /* 
@@ -53,37 +49,61 @@ float read_gp2d12_range(byte pin) {
 
 // We are using the Pololu serial command protocol
 // FYI see http://www.pololu.com/docs/0J40/5.e
-// The LSB and MSB values are specific to my servos
+// The servo target values are specific to my servos
 
 void move_servo(int channel, int pos) {
   byte command[] = {
-    170, 12, 4, channel, pos & 0x7F, (pos >> 7) & 0x7F      };
+    170, 12, 4, channel, pos & 0x7F, (pos >> 7) & 0x7F };
   for(int i = 0; i < 6; i++) {
     mySerial.write(command[i]);
     //Serial.println(command[i],HEX);
   } 
 }
 
-void sweep_servo(int pos) {
-  //set_servo_header();
-  byte command[] = {
-    0x01, pos & 0x7F, (pos >> 7) & 0x7F            };
-  //mySerial.write(0x01);
-  //mySerial.write(0x50);
-  //mySerial.write(0X0F);
-  mySerial.write(0xAA); // Command start byte
-  mySerial.write(0x0C); // Default device ID is 12 or 0x0C
-  mySerial.write(0x04);
-  //mySerial.write(0x01);
-  //mySerial.write(pos 
-  mySerial.write(command[0]);
-  mySerial.write(command[1]);
-  mySerial.write(command[2]);
-  //mySerial.write(0x01);
-  //mySerial.write(pos & 0x7F);
-  //mySerial.write((pos >> 7) & 0x7F);
-  Serial.println(command[1],HEX);
-  Serial.println(command[2],HEX);
+// move camera left right
+void sweep() {
+  int pos = 6000;
+  move_servo(1, pos);
+  //sweep left
+  for(pos; pos < 8000; pos += 50) {
+    move_servo(1, pos);
+    delay(10); 
+  }
+  delay(200);
+  //sweep right
+  for(pos; pos > 3968; pos -= 50) {
+    move_servo(1, pos);
+    delay(10); 
+  }
+  delay(200);
+  // move back to center
+  for(pos; pos < 6000; pos += 50) {
+    move_servo(1, pos);
+    delay(10);
+  }
+}
+
+// move camera head up/down
+void pan() {
+  int pos = 4632;
+  move_servo(0, pos);
+  // look up
+  for(pos; pos < 6360; pos += 50) {
+    move_servo(0, pos);
+    delay(10);
+  }
+  delay(200);
+  // look down
+  for(pos; pos > 2752; pos -= 50) {
+    move_servo(0, pos);
+    delay(10);
+  }
+  delay(200);
+  // move to level
+  for(pos; pos < 4632; pos += 50) {
+    move_servo(0, pos);
+    delay(10); 
+  }
 }
 
 void center_servos() {
@@ -91,7 +111,7 @@ void center_servos() {
   move_servo(3, 4887);
   move_servo(2, 6000);
   move_servo(1, 6000);
-  move_servo(i, 4632); 
+  move_servo(0, 4632); 
 }
 
 
@@ -187,6 +207,9 @@ void turn_left(int numTurns) {
   }
   center_servos();
 }
+
+
+
 
 
 
