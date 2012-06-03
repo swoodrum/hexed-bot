@@ -5,21 +5,35 @@
 
 #define pRxPin 3 // for Pololu servo controller, digital pin 3
 #define pTxPin 4 // for Pololu servo controller, digital pin 4
+#define SET_TARGET_BYTE 4 // represents Pololu protocol set target command
+#define DEFAULT_BAUD 9600
+#define DEVICE_NUM 12 // default device number for Pololu protocol
+#define MIN_RANGE 30
+#define PROTOCOL_BYTE 170 // Pololu protocol identifier
+#define SERVO_0_NEUTRAL 4632
+#define SERVO_0_MAX 6360
+#define SERVO_0_MIN 2752
+#define SERVO_1_NEUTRAL 6000
+#define SERVO_1_MAX 8000
+#define SERVO_1_MIN 3968
+#define SERVO_2_NEUTRAL 6000
+#define SERVO_3_NEUTRAL 4887
+#define SERVO_4_NEUTRAL 5380
 
 const int gp2d12Pin = 5; // analog pin 5
 
 SoftwareSerial mySerial(pRxPin, pTxPin);
 
 void setup() {
-  Serial.begin(9600);
-  mySerial.begin(9600);
+  Serial.begin(DEFAULT_BAUD);
+  mySerial.begin(DEFAULT_BAUD);
   delay(1000);
   center_servos();
 }
 
 void loop() {
   //Serial.println(read_gp2d12_range(gp2d12Pin));
-  if(read_gp2d12_range(gp2d12Pin) > 30) {
+  if(read_gp2d12_range(gp2d12Pin) > MIN_RANGE) {
     walk_forward(1); 
   } 
   else {
@@ -53,7 +67,7 @@ float read_gp2d12_range(byte pin) {
 
 void move_servo(int channel, int pos) {
   byte command[] = {
-    170, 12, 4, channel, pos & 0x7F, (pos >> 7) & 0x7F };
+    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & 0x7F, (pos >> 7) & 0x7F };
   for(int i = 0; i < 6; i++) {
     mySerial.write(command[i]);
     //Serial.println(command[i],HEX);
@@ -62,22 +76,22 @@ void move_servo(int channel, int pos) {
 
 // move camera left right
 void sweep() {
-  int pos = 6000;
+  int pos = SERVO_1_NEUTRAL;
   move_servo(1, pos);
   //sweep left
-  for(pos; pos < 8000; pos += 50) {
+  for(pos; pos < SERVO_1_MAX; pos += 50) {
     move_servo(1, pos);
     delay(10); 
   }
   delay(200);
   //sweep right
-  for(pos; pos > 3968; pos -= 50) {
+  for(pos; pos > SERVO_1_MIN; pos -= 50) {
     move_servo(1, pos);
     delay(10); 
   }
   delay(200);
   // move back to center
-  for(pos; pos < 6000; pos += 50) {
+  for(pos; pos < SERVO_1_NEUTRAL; pos += 50) {
     move_servo(1, pos);
     delay(10);
   }
@@ -85,33 +99,33 @@ void sweep() {
 
 // move camera head up/down
 void pan() {
-  int pos = 4632;
+  int pos = SERVO_0_NEUTRAL;
   move_servo(0, pos);
   // look up
-  for(pos; pos < 6360; pos += 50) {
+  for(pos; pos < SERVO_0_MAX; pos += 50) {
     move_servo(0, pos);
     delay(10);
   }
   delay(200);
   // look down
-  for(pos; pos > 2752; pos -= 50) {
+  for(pos; pos > SERVO_0_MIN; pos -= 50) {
     move_servo(0, pos);
     delay(10);
   }
   delay(200);
   // move to level
-  for(pos; pos < 4632; pos += 50) {
+  for(pos; pos < SERVO_0_NEUTRAL; pos += 50) {
     move_servo(0, pos);
     delay(10); 
   }
 }
 
 void center_servos() {
-  move_servo(4, 5380);
-  move_servo(3, 4887);
-  move_servo(2, 6000);
-  move_servo(1, 6000);
-  move_servo(0, 4632); 
+  move_servo(4, SERVO_4_NEUTRAL);
+  move_servo(3, SERVO_3_NEUTRAL);
+  move_servo(2, SERVO_2_NEUTRAL);
+  move_servo(1, SERVO_1_NEUTRAL);
+  move_servo(0, SERVO_0_NEUTRAL); 
 }
 
 
