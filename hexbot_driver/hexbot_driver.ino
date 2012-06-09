@@ -32,7 +32,7 @@ SoftwareSerial mySerial(pRxPin, pTxPin);
 
 unsigned char c;
 unsigned char minX,minY,maxX,maxY;
-char s[32];
+//char s[32];
 
 int servoX = SERVO_1_NEUTRAL;
 
@@ -95,12 +95,13 @@ void loop() {
     int rawX = (maxX+minX)/2;
     //int translateX = map(rawX, 0, W, SERVO_1_MAX, SERVO_1_MIN);
     int translateX = map(rawX, 0, W, SERVO_1_MAX, SERVO_1_MIN);
+    //float translateX = map(rawX, 0, W, 0, 1);
     
     //int rawY = (maxY+minY)/2;
     //int translateY = map(rawY, 0, H, SERVO_0_MIN, SERVO_0_MAX);
     //sprintf(s, "%d, %d", ((maxX+minX)/2), ((maxY+minY)/2));
     //sprintf(s, "%d, %d", rawX, rawY);
-    //Serial.println(translateX);
+    Serial.println(translateX);
     if(translateX > SERVO_1_NEUTRAL) {
       servoX = min(SERVO_1_MAX,(servoX + (translateX - SERVO_1_NEUTRAL)));
     } else if (translateX < 6000) {
@@ -117,9 +118,9 @@ void loop() {
     //move_servo(0, translateY);
 
     //move_servo(1, constrain(servoX, SERVO_1_MIN, SERVO_1_MAX));
-    Serial.println(servoX);
+    //Serial.println(servoX);
   }
-  delay(50);
+  delay(100);
   //tv.resume();
 }
 
