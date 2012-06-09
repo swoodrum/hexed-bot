@@ -44,7 +44,7 @@ void setup() {
   mySerial.begin(DEFAULT_BAUD);
   delay(1000);
   center_servos();
-  
+
 }
 
 void loop() {
@@ -96,20 +96,22 @@ void loop() {
     //int translateX = map(rawX, 0, W, SERVO_1_MAX, SERVO_1_MIN);
     int translateX = map(rawX, 0, W, SERVO_1_MAX, SERVO_1_MIN);
     //float translateX = map(rawX, 0, W, 0, 1);
-    
+
     //int rawY = (maxY+minY)/2;
     //int translateY = map(rawY, 0, H, SERVO_0_MIN, SERVO_0_MAX);
     //sprintf(s, "%d, %d", ((maxX+minX)/2), ((maxY+minY)/2));
     //sprintf(s, "%d, %d", rawX, rawY);
     Serial.println(translateX);
     if(translateX > SERVO_1_NEUTRAL) {
-      servoX = min(SERVO_1_MAX,(servoX + (translateX - SERVO_1_NEUTRAL)));
-    } else if (translateX < 6000) {
-      servoX = max(SERVO_1_MIN, (servoX - (SERVO_1_NEUTRAL - translateX))); 
-    } else {
+      servoX = min(SERVO_1_MAX,(servoX + ((translateX - SERVO_1_NEUTRAL)/3)));
+    } 
+    else if (translateX < 6000) {
+      servoX = max(SERVO_1_MIN, (servoX - ((SERVO_1_NEUTRAL - translateX)/3))); 
+    } 
+    else {
       servoX = SERVO_1_NEUTRAL; 
     }
-    //Serial.println(servoX);
+    Serial.println(servoX);
     //Serial.print(", ");
     //Serial.println(translateY);
     if((servoX <= SERVO_1_MAX) && (servoX >= SERVO_1_MIN)) {
@@ -120,7 +122,7 @@ void loop() {
     //move_servo(1, constrain(servoX, SERVO_1_MIN, SERVO_1_MAX));
     //Serial.println(servoX);
   }
-  delay(100);
+  delay(50);
   //tv.resume();
 }
 
@@ -177,7 +179,7 @@ float read_gp2d12_range(byte pin) {
 
 void move_servo(int channel, int pos) {
   byte command[] = {
-    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & 0x7F, (pos >> 7) & 0x7F                 };
+    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & 0x7F, (pos >> 7) & 0x7F };
   for(int i = 0; i < 6; i++) {
     mySerial.write(command[i]);
     //Serial.println(command[i],HEX);
@@ -331,6 +333,8 @@ void turn_left(int numTurns) {
   }
   center_servos();
 }
+
+
 
 
 
