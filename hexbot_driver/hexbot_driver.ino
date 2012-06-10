@@ -60,6 +60,14 @@ void loop() {
    }*/
   //sweep();
   //pan();
+
+  //tv.resume();
+  //tv.delay_frame(2);
+  detect_light();
+  delay(50);
+}
+
+void detect_light() {
   tv.capture();
   minX = W;
   minY = H;
@@ -87,16 +95,6 @@ void loop() {
     }
   }
   if(found) {
-    // draw bounding box
-    /*tv.fill(0);
-     if (found) {
-     tv.draw_line(minX, minY, maxX, minY, 1);
-     tv.draw_line(minX, minY, minX, maxY, 1);
-     tv.draw_line(maxX, minY, maxX, maxY, 1);
-     tv.draw_line(minX, maxY, maxX, maxY, 1);
-     sprintf(s, "%d, %d", ((maxX+minX)/2), ((maxY+minY)/2));
-     tv.print(0, 0, s);
-     }*/
     int rawX = (maxX+minX)/2;
     int translateX = map(rawX, 0, W, SERVO_1_MAX, SERVO_1_MIN);
 
@@ -112,7 +110,6 @@ void loop() {
     else {
       servoX = SERVO_1_NEUTRAL; 
     }
-    //Serial.println(servoX);
     if((servoX <= SERVO_1_MAX) && (servoX >= SERVO_1_MIN)) {
       move_servo(1, servoX);
     }
@@ -129,12 +126,7 @@ void loop() {
     if((servoY <= SERVO_0_MAX) && (servoY >= SERVO_0_MIN)) {
       move_servo(0, servoY);
     }
-    //move_servo(0, translateY);
-    //Serial.println(servoX);
   }
-  //tv.resume();
-  //tv.delay_frame(2);
-  delay(50);
 }
 
 // misc tv functions
@@ -190,7 +182,7 @@ float read_gp2d12_range(byte pin) {
 
 void move_servo(int channel, int pos) {
   byte command[] = {
-    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & POLOLU_BIT_MASK, (pos >> 7) & POLOLU_BIT_MASK  };
+    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & POLOLU_BIT_MASK, (pos >> 7) & POLOLU_BIT_MASK    };
   for(int i = 0; i < 6; i++) {
     mySerial.write(command[i]);
     //Serial.println(command[i],HEX);
@@ -344,6 +336,7 @@ void turn_left(int numTurns) {
   }
   center_servos();
 }
+
 
 
 
