@@ -23,7 +23,8 @@
 #define SERVO_2_NEUTRAL 6000
 #define SERVO_3_NEUTRAL 4887
 #define SERVO_4_NEUTRAL 5380
-#define SERVO_MOVE_ADJUST 3
+#define SERVO_LIGHT_SENSITIVITY 4
+#define POLOLU_BIT_MASK 0x7F
 
 const int gp2d12Pin = 5; // analog pin 5
 
@@ -88,14 +89,14 @@ void loop() {
   if(found) {
     // draw bounding box
     /*tv.fill(0);
-    if (found) {
-      tv.draw_line(minX, minY, maxX, minY, 1);
-      tv.draw_line(minX, minY, minX, maxY, 1);
-      tv.draw_line(maxX, minY, maxX, maxY, 1);
-      tv.draw_line(minX, maxY, maxX, maxY, 1);
-      sprintf(s, "%d, %d", ((maxX+minX)/2), ((maxY+minY)/2));
-      tv.print(0, 0, s);
-    }*/
+     if (found) {
+     tv.draw_line(minX, minY, maxX, minY, 1);
+     tv.draw_line(minX, minY, minX, maxY, 1);
+     tv.draw_line(maxX, minY, maxX, maxY, 1);
+     tv.draw_line(minX, maxY, maxX, maxY, 1);
+     sprintf(s, "%d, %d", ((maxX+minX)/2), ((maxY+minY)/2));
+     tv.print(0, 0, s);
+     }*/
     int rawX = (maxX+minX)/2;
     int translateX = map(rawX, 0, W, SERVO_1_MAX, SERVO_1_MIN);
 
@@ -103,10 +104,10 @@ void loop() {
     int translateY = map(rawY, 0, H, SERVO_0_MAX, SERVO_0_MIN);
     // X axis calculations
     if(translateX > SERVO_1_NEUTRAL) {
-      servoX = min(SERVO_1_MAX,(servoX + ((translateX - SERVO_1_NEUTRAL)/SERVO_MOVE_ADJUST)));
+      servoX = min(SERVO_1_MAX,(servoX + ((translateX - SERVO_1_NEUTRAL)/SERVO_LIGHT_SENSITIVITY)));
     } 
     else if (translateX < SERVO_1_NEUTRAL) {
-      servoX = max(SERVO_1_MIN, (servoX - ((SERVO_1_NEUTRAL - translateX)/SERVO_MOVE_ADJUST))); 
+      servoX = max(SERVO_1_MIN, (servoX - ((SERVO_1_NEUTRAL - translateX)/SERVO_LIGHT_SENSITIVITY))); 
     } 
     else {
       servoX = SERVO_1_NEUTRAL; 
@@ -117,10 +118,10 @@ void loop() {
     }
     // Y axis calculations
     if(translateY > SERVO_0_NEUTRAL) {
-      servoY = min(SERVO_0_MAX,(servoY + ((translateY - SERVO_0_NEUTRAL)/SERVO_MOVE_ADJUST)));
+      servoY = min(SERVO_0_MAX,(servoY + ((translateY - SERVO_0_NEUTRAL)/SERVO_LIGHT_SENSITIVITY)));
     } 
     else if (translateY < SERVO_0_NEUTRAL) {
-      servoY = max(SERVO_0_MIN, (servoY - ((SERVO_0_NEUTRAL - translateY)/SERVO_MOVE_ADJUST))); 
+      servoY = max(SERVO_0_MIN, (servoY - ((SERVO_0_NEUTRAL - translateY)/SERVO_LIGHT_SENSITIVITY))); 
     } 
     else {
       servoY = SERVO_0_NEUTRAL; 
@@ -189,7 +190,7 @@ float read_gp2d12_range(byte pin) {
 
 void move_servo(int channel, int pos) {
   byte command[] = {
-    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & 0x7F, (pos >> 7) & 0x7F   };
+    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & POLOLU_BIT_MASK, (pos >> 7) & POLOLU_BIT_MASK  };
   for(int i = 0; i < 6; i++) {
     mySerial.write(command[i]);
     //Serial.println(command[i],HEX);
@@ -343,6 +344,8 @@ void turn_left(int numTurns) {
   }
   center_servos();
 }
+
+
 
 
 
