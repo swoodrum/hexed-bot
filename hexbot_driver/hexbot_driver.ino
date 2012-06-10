@@ -23,6 +23,7 @@
 #define SERVO_2_NEUTRAL 6000
 #define SERVO_3_NEUTRAL 4887
 #define SERVO_4_NEUTRAL 5380
+#define SERVO_MOVE_ADJUST 3
 
 const int gp2d12Pin = 5; // analog pin 5
 
@@ -32,9 +33,10 @@ SoftwareSerial mySerial(pRxPin, pTxPin);
 
 unsigned char c;
 unsigned char minX,minY,maxX,maxY;
-//char s[32];
+char s[32];
 
 int servoX = SERVO_1_NEUTRAL;
+int servoY = SERVO_0_NEUTRAL;
 
 void setup() {
   tv.begin(NTSC, W, H);
@@ -84,46 +86,54 @@ void loop() {
     }
   }
   if(found) {
-    /*Serial.print("minX: ");
-     Serial.print(minX);
-     Serial.print("\tmaxX: ");
-     Serial.print(maxX);
-     Serial.print("\tminY: ");
-     Serial.print(minY);
-     Serial.print("\tmaxY: ");
-     Serial.println(maxY);*/
+    // draw bounding box
+    /*tv.fill(0);
+    if (found) {
+      tv.draw_line(minX, minY, maxX, minY, 1);
+      tv.draw_line(minX, minY, minX, maxY, 1);
+      tv.draw_line(maxX, minY, maxX, maxY, 1);
+      tv.draw_line(minX, maxY, maxX, maxY, 1);
+      sprintf(s, "%d, %d", ((maxX+minX)/2), ((maxY+minY)/2));
+      tv.print(0, 0, s);
+    }*/
     int rawX = (maxX+minX)/2;
-    //int translateX = map(rawX, 0, W, SERVO_1_MAX, SERVO_1_MIN);
     int translateX = map(rawX, 0, W, SERVO_1_MAX, SERVO_1_MIN);
-    //float translateX = map(rawX, 0, W, 0, 1);
 
-    //int rawY = (maxY+minY)/2;
-    //int translateY = map(rawY, 0, H, SERVO_0_MIN, SERVO_0_MAX);
-    //sprintf(s, "%d, %d", ((maxX+minX)/2), ((maxY+minY)/2));
-    //sprintf(s, "%d, %d", rawX, rawY);
-    Serial.println(translateX);
+    int rawY = (maxY+minY)/2;
+    int translateY = map(rawY, 0, H, SERVO_0_MAX, SERVO_0_MIN);
+    // X axis calculations
     if(translateX > SERVO_1_NEUTRAL) {
-      servoX = min(SERVO_1_MAX,(servoX + ((translateX - SERVO_1_NEUTRAL)/3)));
+      servoX = min(SERVO_1_MAX,(servoX + ((translateX - SERVO_1_NEUTRAL)/SERVO_MOVE_ADJUST)));
     } 
-    else if (translateX < 6000) {
-      servoX = max(SERVO_1_MIN, (servoX - ((SERVO_1_NEUTRAL - translateX)/3))); 
+    else if (translateX < SERVO_1_NEUTRAL) {
+      servoX = max(SERVO_1_MIN, (servoX - ((SERVO_1_NEUTRAL - translateX)/SERVO_MOVE_ADJUST))); 
     } 
     else {
       servoX = SERVO_1_NEUTRAL; 
     }
-    Serial.println(servoX);
-    //Serial.print(", ");
-    //Serial.println(translateY);
+    //Serial.println(servoX);
     if((servoX <= SERVO_1_MAX) && (servoX >= SERVO_1_MIN)) {
       move_servo(1, servoX);
     }
+    // Y axis calculations
+    if(translateY > SERVO_0_NEUTRAL) {
+      servoY = min(SERVO_0_MAX,(servoY + ((translateY - SERVO_0_NEUTRAL)/SERVO_MOVE_ADJUST)));
+    } 
+    else if (translateY < SERVO_0_NEUTRAL) {
+      servoY = max(SERVO_0_MIN, (servoY - ((SERVO_0_NEUTRAL - translateY)/SERVO_MOVE_ADJUST))); 
+    } 
+    else {
+      servoY = SERVO_0_NEUTRAL; 
+    }
+    if((servoY <= SERVO_0_MAX) && (servoY >= SERVO_0_MIN)) {
+      move_servo(0, servoY);
+    }
     //move_servo(0, translateY);
-
-    //move_servo(1, constrain(servoX, SERVO_1_MIN, SERVO_1_MAX));
     //Serial.println(servoX);
   }
-  delay(50);
   //tv.resume();
+  //tv.delay_frame(2);
+  delay(50);
 }
 
 // misc tv functions
@@ -179,7 +189,7 @@ float read_gp2d12_range(byte pin) {
 
 void move_servo(int channel, int pos) {
   byte command[] = {
-    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & 0x7F, (pos >> 7) & 0x7F };
+    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & 0x7F, (pos >> 7) & 0x7F   };
   for(int i = 0; i < 6; i++) {
     mySerial.write(command[i]);
     //Serial.println(command[i],HEX);
@@ -333,6 +343,7 @@ void turn_left(int numTurns) {
   }
   center_servos();
 }
+
 
 
 
