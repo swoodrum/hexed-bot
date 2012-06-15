@@ -1,6 +1,15 @@
 #include <SoftwareSerial.h>
 #include <TVout.h>
 #include <fontALL.h>
+
+// bit twiddling macros
+#ifndef cbi
+#define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
+#endif
+#ifndef sbi
+#define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
+#endif
+
 #define W 128
 #define H 96
 
@@ -154,6 +163,14 @@ void initInputProcessing() {
   ACSR &= ~_BV(ACIC);  // disable analog comparator input capture
 }
 
+void enableADC() {
+  sbi(ADCSRA,ADEN);
+}
+
+void disableADC() {
+  cbi(ADCSRA,ADEN); 
+}
+
 // Required
 ISR(INT0_vect) {
   display.scanLine = 0;
@@ -169,8 +186,11 @@ ISR(INT0_vect) {
  */
 
 float read_gp2d12_range(byte pin) {
+  enableADC();
+  delay(2);
   int tmp;
   tmp = analogRead(pin);
+  disableADC();
   if (tmp < 3)
     return -1; // invalid value
   return (6787.0 /((float)tmp - 3.0)) - 4.0;
@@ -182,7 +202,7 @@ float read_gp2d12_range(byte pin) {
 
 void move_servo(int channel, int pos) {
   byte command[] = {
-    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & POLOLU_BIT_MASK, (pos >> 7) & POLOLU_BIT_MASK    };
+    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & POLOLU_BIT_MASK, (pos >> 7) & POLOLU_BIT_MASK      };
   for(int i = 0; i < 6; i++) {
     mySerial.write(command[i]);
     //Serial.println(command[i],HEX);
@@ -336,6 +356,7 @@ void turn_left(int numTurns) {
   }
   center_servos();
 }
+
 
 
 
