@@ -32,7 +32,7 @@
 #define SERVO_2_NEUTRAL 6000
 #define SERVO_3_NEUTRAL 4887
 #define SERVO_4_NEUTRAL 5380
-#define SERVO_LIGHT_SENSITIVITY 4
+#define SERVO_LIGHT_SENSITIVITY 6
 #define POLOLU_BIT_MASK 0x7F
 
 const int gp2d12Pin = 5; // analog pin 5
@@ -48,10 +48,12 @@ char s[32];
 int servoX = SERVO_1_NEUTRAL;
 int servoY = SERVO_0_NEUTRAL;
 
+int counter = 0;
+
 void setup() {
   tv.begin(NTSC, W, H);
   initOverlay();
-  initInputProcessing();
+  initVideoProcessing();
   Serial.begin(DEFAULT_BAUD);
   mySerial.begin(DEFAULT_BAUD);
   delay(1000);
@@ -60,6 +62,15 @@ void setup() {
 }
 
 void loop() {
+  if(counter > 20) {
+    counter = 0;
+    //disableVideoProcessing();
+    //delay(2);
+    //Serial.println(read_gp2d12_range(gp2d12Pin));
+    //initVideoProcessing();
+    //delay(2);
+    //read_gp2d12_range(gp2d12Pin);
+  }
   //Serial.println(read_gp2d12_range(gp2d12Pin));
   /*if(read_gp2d12_range(gp2d12Pin) > MIN_RANGE) {
    walk_forward(1); 
@@ -74,6 +85,7 @@ void loop() {
   //tv.delay_frame(2);
   detect_light();
   delay(50);
+  counter++;
 }
 
 void detect_light() {
@@ -152,7 +164,8 @@ void initOverlay() {
   EICRA = _BV(ISC11);
 }
 
-void initInputProcessing() {
+void initVideoProcessing() {
+  //TIMSK1 |= _BV(ICIE1);
   // Analog Comparator setup
   ADCSRA &= ~_BV(ADEN); // disable ADC
   ADCSRB |= _BV(ACME); // enable ADC multiplexer
@@ -161,14 +174,20 @@ void initInputProcessing() {
   ADMUX &= ~_BV(MUX2);
   ACSR &= ~_BV(ACIE);  // disable analog comparator interrupts
   ACSR &= ~_BV(ACIC);  // disable analog comparator input capture
+  //delay(10);
 }
 
-void enableADC() {
-  sbi(ADCSRA,ADEN);
-}
-
-void disableADC() {
-  cbi(ADCSRA,ADEN); 
+void disableVideoProcessing() {
+  TIMSK1 &= ~_BV(ICIE1);
+  // Analog Comparator setup
+  ADCSRA |= _BV(ADEN); // disable ADC
+  ADCSRB &= ~_BV(ACME); // enable ADC multiplexer
+  ADMUX |= _BV(MUX0);  // select A2 for use as AIN1 (negative voltage of comparator)
+  ADMUX &= ~_BV(MUX1);
+  ADMUX |= _BV(MUX2);
+  ACSR |= _BV(ACIE);  // disable analog comparator interrupts
+  ACSR |= _BV(ACIC);
+  //delay(10);
 }
 
 // Required
@@ -186,11 +205,8 @@ ISR(INT0_vect) {
  */
 
 float read_gp2d12_range(byte pin) {
-  enableADC();
-  delay(2);
   int tmp;
   tmp = analogRead(pin);
-  disableADC();
   if (tmp < 3)
     return -1; // invalid value
   return (6787.0 /((float)tmp - 3.0)) - 4.0;
