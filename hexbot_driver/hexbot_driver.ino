@@ -24,7 +24,7 @@
 #define SERVO_2_NEUTRAL 6000
 #define SERVO_3_NEUTRAL 4887
 #define SERVO_4_NEUTRAL 5380
-#define SERVO_LIGHT_SENSITIVITY 6
+#define SERVO_LIGHT_SENSITIVITY 3
 #define POLOLU_BIT_MASK 0x7F
 
 const int gp2d12Pin = 5; // analog pin 5
@@ -58,12 +58,18 @@ void loop() {
     counter = 0;
     //disableVideoProcessing();
     //delay(2);
-    //Serial.println(read_gp2d12_range(gp2d12Pin));
+    //Serial.println(read_gp2d12_range_adc());
     //initVideoProcessing();
     //delay(2);
     //read_gp2d12_range(gp2d12Pin);
+    if(read_gp2d12_range_adc() <= MIN_RANGE) {
+      center_servos();
+      servoY = SERVO_0_NEUTRAL;
+      servoX = SERVO_1_NEUTRAL;
+      delay(100);
+    }
   }
-  //Serial.println(read_gp2d12_range(gp2d12Pin));
+  //Serial.println(read_gp2d12_range_adc());
   /*if(read_gp2d12_range(gp2d12Pin) > MIN_RANGE) {
    walk_forward(1); 
    } 
@@ -142,6 +148,17 @@ void detect_light() {
   }
 }
 
+// can we read the distance sensor using the ADC
+float read_gp2d12_range_adc() {
+  ADCSRB &= ~_BV(ACME); // disable ADC multiplexer
+  ADCSRA |= _BV(ADEN); // enable ADC
+  delay(2);
+  float val = read_gp2d12_range(gp2d12Pin);
+  //delay(2);
+  //initOverlay();
+  initVideoProcessing();
+}
+
 // misc tv functions
 void initOverlay() {
   TCCR1A = 0; // disable PWM on timer 1 during setup
@@ -182,6 +199,8 @@ ISR(INT0_vect) {
  */
 
 float read_gp2d12_range(byte pin) {
+  analogRead(pin);
+  delay(10);
   int tmp;
   tmp = analogRead(pin);
   if (tmp < 3)
@@ -195,7 +214,7 @@ float read_gp2d12_range(byte pin) {
 
 void move_servo(int channel, int pos) {
   byte command[] = {
-    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & POLOLU_BIT_MASK, (pos >> 7) & POLOLU_BIT_MASK      };
+    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & POLOLU_BIT_MASK, (pos >> 7) & POLOLU_BIT_MASK            };
   for(int i = 0; i < 6; i++) {
     mySerial.write(command[i]);
     //Serial.println(command[i],HEX);
@@ -349,6 +368,9 @@ void turn_left(int numTurns) {
   }
   center_servos();
 }
+
+
+
 
 
 
