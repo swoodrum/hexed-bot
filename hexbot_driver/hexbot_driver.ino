@@ -24,7 +24,7 @@
 #define SERVO_2_NEUTRAL 6000
 #define SERVO_3_NEUTRAL 4887
 #define SERVO_4_NEUTRAL 5380
-#define SERVO_LIGHT_SENSITIVITY 3
+#define SERVO_LIGHT_SENSITIVITY 10
 #define POLOLU_BIT_MASK 0x7F
 
 const int gp2d12Pin = 5; // analog pin 5
