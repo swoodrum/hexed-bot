@@ -43,25 +43,22 @@ int servoY = SERVO_0_NEUTRAL;
 int counter = 0;
 
 void setup() {
-  tv.begin(NTSC, W, H);
-  initOverlay();
-  initVideoProcessing();
-  Serial.begin(DEFAULT_BAUD);
+  //tv.begin(NTSC, W, H);
+  //initOverlay();
+  //initVideoProcessing();
+  //Serial.begin(DEFAULT_BAUD);
   mySerial.begin(DEFAULT_BAUD);
   delay(1000);
   center_servos();
-
+  delay(1000);
+  walk_forward(2);
+  delay(1000);
+  walk_backward(2);
 }
 
 void loop() {
-  if(counter > 20) {
+  /*if(counter > 20) {
     counter = 0;
-    //disableVideoProcessing();
-    //delay(2);
-    //Serial.println(read_gp2d12_range_adc());
-    //initVideoProcessing();
-    //delay(2);
-    //read_gp2d12_range(gp2d12Pin);
     if(read_gp2d12_range_adc() <= MIN_RANGE) {
       center_servos();
       servoY = SERVO_0_NEUTRAL;
@@ -69,21 +66,9 @@ void loop() {
       delay(100);
     }
   }
-  //Serial.println(read_gp2d12_range_adc());
-  /*if(read_gp2d12_range(gp2d12Pin) > MIN_RANGE) {
-   walk_forward(1); 
-   } 
-   else {
-   walk_backward(1); 
-   }*/
-  //sweep();
-  //pan();
-
-  //tv.resume();
-  //tv.delay_frame(2);
   detect_light();
   delay(50);
-  counter++;
+  counter++;*/
 }
 
 void detect_light() {
