@@ -13,7 +13,7 @@
 #define SET_TARGET_BYTE 4 // represents Pololu protocol set target command
 #define DEFAULT_BAUD 9600
 #define DEVICE_NUM 12 // default device number for Pololu protocol
-#define MIN_RANGE 30
+#define MIN_RANGE 20
 #define PROTOCOL_BYTE 170 // Pololu protocol identifier (0xAA)
 #define SERVO_0_NEUTRAL 4632
 #define SERVO_0_MAX 6360
@@ -26,6 +26,8 @@
 #define SERVO_4_NEUTRAL 5380
 #define SERVO_LIGHT_SENSITIVITY 10
 #define POLOLU_BIT_MASK 0x7F
+#define SENSOR_READ_INTERVAL 10
+#define FRAME_DELAY 0
 
 const int gp2d12Pin = 5; // analog pin 5
 
@@ -43,23 +45,27 @@ int servoY = SERVO_0_NEUTRAL;
 int counter = 0;
 
 void setup() {
-  //tv.begin(NTSC, W, H);
-  //initOverlay();
-  //initVideoProcessing();
+  tv.begin(NTSC, W, H);
+  initOverlay();
+  initVideoProcessing();
   //Serial.begin(DEFAULT_BAUD);
   mySerial.begin(DEFAULT_BAUD);
   delay(1000);
   center_servos();
-  delay(1000);
-  walk_forward(2);
-  delay(1000);
-  walk_backward(2);
+  //delay(1000);
+  //walk_forward(2);
+  //delay(1000);
+  //walk_backward(2);
+  tv.select_font(font4x6);
+  tv.fill(0);
 }
 
 void loop() {
-  /*if(counter > 20) {
+  if(counter > SENSOR_READ_INTERVAL) {
     counter = 0;
-    if(read_gp2d12_range_adc() <= MIN_RANGE) {
+    float range = read_gp2d12_range_adc();
+    //Serial.println(range);
+    if(range <= MIN_RANGE) {
       center_servos();
       servoY = SERVO_0_NEUTRAL;
       servoX = SERVO_1_NEUTRAL;
@@ -68,7 +74,7 @@ void loop() {
   }
   detect_light();
   delay(50);
-  counter++;*/
+  counter++;
 }
 
 void detect_light() {
@@ -131,6 +137,17 @@ void detect_light() {
       move_servo(0, servoY);
     }
   }
+  /*tv.fill(0);
+  if (found) {
+    tv.draw_line(minX, minY, maxX, minY, 1);
+    tv.draw_line(minX, minY, minX, maxY, 1);
+    tv.draw_line(maxX, minY, maxX, maxY, 1);
+    tv.draw_line(minX, maxY, maxX, maxY, 1);
+    sprintf(s, "%d, %d", ((maxX+minX)/2), ((maxY+minY)/2));
+    tv.print(0, 0, s);
+  }
+  tv.resume();
+  tv.delay_frame(FRAME_DELAY);*/
 }
 
 // can we read the distance sensor using the ADC
@@ -139,9 +156,13 @@ float read_gp2d12_range_adc() {
   ADCSRA |= _BV(ADEN); // enable ADC
   delay(2);
   float val = read_gp2d12_range(gp2d12Pin);
+  if(val < 0) {
+    val = 1000.0; 
+  }
   //delay(2);
   //initOverlay();
   initVideoProcessing();
+  return val;
 }
 
 // misc tv functions
@@ -199,7 +220,7 @@ float read_gp2d12_range(byte pin) {
 
 void move_servo(int channel, int pos) {
   byte command[] = {
-    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & POLOLU_BIT_MASK, (pos >> 7) & POLOLU_BIT_MASK            };
+    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & POLOLU_BIT_MASK, (pos >> 7) & POLOLU_BIT_MASK   };
   for(int i = 0; i < 6; i++) {
     mySerial.write(command[i]);
     //Serial.println(command[i],HEX);
@@ -353,6 +374,8 @@ void turn_left(int numTurns) {
   }
   center_servos();
 }
+
+
 
 
 
