@@ -123,6 +123,12 @@ void detect_light() {
     if((servoX <= SERVO_1_MAX) && (servoX >= SERVO_1_MIN)) {
       move_servo(1, servoX);
     }
+    if(servoX < SERVO_1_NEUTRAL) {
+      turn_right(1); 
+    } 
+    else if (servoX > SERVO_1_NEUTRAL) {
+      turn_left(1); 
+    }
     // Y axis calculations
     if(translateY > SERVO_0_NEUTRAL) {
       servoY = min(SERVO_0_MAX,(servoY + ((translateY - SERVO_0_NEUTRAL)/SERVO_LIGHT_SENSITIVITY)));
@@ -138,16 +144,16 @@ void detect_light() {
     }
   }
   /*tv.fill(0);
-  if (found) {
-    tv.draw_line(minX, minY, maxX, minY, 1);
-    tv.draw_line(minX, minY, minX, maxY, 1);
-    tv.draw_line(maxX, minY, maxX, maxY, 1);
-    tv.draw_line(minX, maxY, maxX, maxY, 1);
-    sprintf(s, "%d, %d", ((maxX+minX)/2), ((maxY+minY)/2));
-    tv.print(0, 0, s);
-  }
-  tv.resume();
-  tv.delay_frame(FRAME_DELAY);*/
+   if (found) {
+   tv.draw_line(minX, minY, maxX, minY, 1);
+   tv.draw_line(minX, minY, minX, maxY, 1);
+   tv.draw_line(maxX, minY, maxX, maxY, 1);
+   tv.draw_line(minX, maxY, maxX, maxY, 1);
+   sprintf(s, "%d, %d", ((maxX+minX)/2), ((maxY+minY)/2));
+   tv.print(0, 0, s);
+   }
+   tv.resume();
+   tv.delay_frame(FRAME_DELAY);*/
 }
 
 // can we read the distance sensor using the ADC
@@ -220,7 +226,7 @@ float read_gp2d12_range(byte pin) {
 
 void move_servo(int channel, int pos) {
   byte command[] = {
-    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & POLOLU_BIT_MASK, (pos >> 7) & POLOLU_BIT_MASK   };
+    PROTOCOL_BYTE, DEVICE_NUM, SET_TARGET_BYTE, channel, pos & POLOLU_BIT_MASK, (pos >> 7) & POLOLU_BIT_MASK};
   for(int i = 0; i < 6; i++) {
     mySerial.write(command[i]);
     //Serial.println(command[i],HEX);
@@ -374,6 +380,7 @@ void turn_left(int numTurns) {
   }
   center_servos();
 }
+
 
 
 
