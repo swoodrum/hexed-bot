@@ -13,7 +13,7 @@
 #define SET_TARGET_BYTE 4 // represents Pololu protocol set target command
 #define DEFAULT_BAUD 9600
 #define DEVICE_NUM 12 // default device number for Pololu protocol
-#define MIN_RANGE 20
+#define MIN_RANGE 30.0
 #define PROTOCOL_BYTE 170 // Pololu protocol identifier (0xAA)
 #define SERVO_0_NEUTRAL 4632
 #define SERVO_0_MAX 6360
@@ -28,6 +28,7 @@
 #define POLOLU_BIT_MASK 0x7F
 #define SENSOR_READ_INTERVAL 10
 #define FRAME_DELAY 0
+#define DEFAULT_BACK_STEPS 1
 
 const int gp2d12Pin = 5; // analog pin 5
 
@@ -42,7 +43,8 @@ char s[32];
 int servoX = SERVO_1_NEUTRAL;
 int servoY = SERVO_0_NEUTRAL;
 
-int counter = 0;
+int read_sensor_counter = 0;
+float current_range = 0.0;
 
 void setup() {
   tv.begin(NTSC, W, H);
@@ -61,20 +63,21 @@ void setup() {
 }
 
 void loop() {
-  if(counter > SENSOR_READ_INTERVAL) {
-    counter = 0;
-    float range = read_gp2d12_range_adc();
+  if(read_sensor_counter > SENSOR_READ_INTERVAL) {
+    read_sensor_counter = 0;
+    current_range = read_gp2d12_range_adc();
     //Serial.println(range);
-    if(range <= MIN_RANGE) {
-      center_servos();
-      servoY = SERVO_0_NEUTRAL;
-      servoX = SERVO_1_NEUTRAL;
-      delay(100);
+    if(current_range <= MIN_RANGE) {
+      //center_servos();
+      //servoY = SERVO_0_NEUTRAL;
+      //servoX = SERVO_1_NEUTRAL;
+      //delay(100);
+      walk_backward(DEFAULT_BACK_STEPS);
     }
   }
   detect_light();
   delay(50);
-  counter++;
+  read_sensor_counter++;
 }
 
 void detect_light() {
@@ -128,6 +131,8 @@ void detect_light() {
     } 
     else if (servoX > SERVO_1_NEUTRAL) {
       turn_left(1); 
+    } else {
+      walk_forward(1);
     }
     // Y axis calculations
     if(translateY > SERVO_0_NEUTRAL) {
@@ -163,7 +168,7 @@ float read_gp2d12_range_adc() {
   delay(2);
   float val = read_gp2d12_range(gp2d12Pin);
   if(val < 0) {
-    val = 1000.0; 
+    val = MIN_RANGE; 
   }
   //delay(2);
   //initOverlay();
